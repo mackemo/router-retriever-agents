@@ -21,6 +21,7 @@ PDF_PATH = "data/transformer_research_paper.pdf"
 
 
 # create the model
+# ------------------------
 MODEL_NAME = "gpt-3.5-turbo"
 
 llm = ChatOpenAI(
@@ -54,17 +55,71 @@ class TavilySearchTool(BaseTool):
         return "\n".join(results)
 
 
-search_tool = TavilySearchTool()
+web_search_tool = TavilySearchTool()
+pdf_search_tool = PDFSearchTool(pdf=PDF_PATH)
+# ------------------------
 
 
-
-# LLM
-# ------------------------------
-# initialize the llm
-MODEL_NAME = "gpt-3.5-turbo"
-
-llm = ChatOpenAI(
-    model_name=MODEL_NAME,
-    temperature=0,
-    openai_api_key=os.getenv("OPENAI_API_KEY")
+# Agents
+# ------------------------
+# Router agent
+router = Agent(
+    role="Router",
+    goal="Choose PDF for questions about the supplied paper, otherwise choose WEB.",
+    backstory="You route each question to the best information source.",
+    verbose=True,
+    allow_delegation=False,
+    llm=llm
 )
+
+# Retriever agent
+retriever = Agent(
+    role="Retriever",
+    goal="Use the selected search tool to answer the user's question.",
+    backstory="You answer using retrieved evidence and identify the source.",
+    verbose=True,
+    allow_delegation=False,
+    llm=llm,
+    tools=[web_search_tool, pdf_search_tool]
+)
+
+
+# -----------------------
+# User Question
+# ------------------------
+question = "What are the main contributions of the Transformer described in the supplied paper?"
+
+
+# Tasks
+# ------------------------
+task_route= Task(
+    description=f"For this question, return exactly PDF if it is about the supplied Transformer paper; otherwise return WEB. Question: {question}",
+    expected_output="PDF or WEB",
+    agent=router
+)
+
+
+task_retrieve = Task(
+    description="""
+Based on the router's output for which information source to pull from, pick the tool that corresponds to the source and use it to answer the user's question.
+
+Requirements:
+- Choose the pdf_search_tool if the router's output is PDF, otherwise choose the web_search_tool.
+""",
+    expected_output="A concise answer grounded in retrieved evidence.",
+    agent=retriever,
+    context=[task_route]
+)
+
+
+# ---- Crew ----
+crew = Crew(
+    agents=[router, retriever],
+    tasks=[task_route, task_retrieve],
+    verbose=True
+)
+
+result = crew.kickoff()
+
+print("\nFinal Output:\n")
+print(result.raw)
