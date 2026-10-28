@@ -20,7 +20,7 @@ PDF_PATH = Path(__file__).parent / "data" / "transformer_research_paper.pdf"
 
 # create the model
 # ------------------------
-MODEL_NAME = "gpt-3.5-turbo"
+MODEL_NAME = "gpt-4o-mini"
 
 llm = LLM(
     model=f"openai/{MODEL_NAME}",
@@ -54,7 +54,7 @@ class TavilySearchTool(BaseTool):
 
 
 web_search_tool = TavilySearchTool()
-pdf_search_tool = PDFSearchTool(pdf=PDF_PATH)
+pdf_search_tool = PDFSearchTool(pdf=str(PDF_PATH))
 # ------------------------
 
 
