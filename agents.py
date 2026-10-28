@@ -57,6 +57,7 @@ class TavilySearchTool(BaseTool):
 
 web_search_tool = TavilySearchTool()
 pdf_search_tool = PDFSearchTool(pdf=PDF_PATH)
+# ------------------------
 
 
 # Agents
@@ -72,7 +73,7 @@ router = Agent(
 )
 
 # Retriever agent
-writer = Agent(
+retriever = Agent(
     role="Retriever",
     goal="Use the selected search tool to answer the user's question.",
     backstory="You answer using retrieved evidence and identify the source.",
@@ -80,4 +81,26 @@ writer = Agent(
     allow_delegation=False,
     llm=llm,
     tools=[web_search_tool, pdf_search_tool]
+)
+
+
+# Tasks
+# ------------------------
+task_route= Task(
+    description=f"For this question, return exactly PDF if it is about the supplied Transformer paper; otherwise return WEB. Question: {question}",
+    expected_output="PDF or WEB",
+    agent=router
+)
+
+
+task_retrieve = Task(
+    description="""
+Based on the router's output for which information source to pull from, pick the tool that corresponds to the source and use it to answer the user's question.
+
+Requirements:
+- Choose the pdf_search_tool if the router's output is PDF, otherwise choose the web_search_tool.
+""",
+    expected_output="A concise answer grounded in retrieved evidence.",
+    agent=retriever,
+    context=[task_route]
 )
