@@ -55,3 +55,16 @@ class TavilySearchTool(BaseTool):
 
 
 search_tool = TavilySearchTool()
+
+
+
+# LLM
+# ------------------------------
+# initialize the llm
+MODEL_NAME = "gpt-3.5-turbo"
+
+llm = ChatOpenAI(
+    model_name=MODEL_NAME,
+    temperature=0,
+    openai_api_key=os.getenv("OPENAI_API_KEY")
+)
