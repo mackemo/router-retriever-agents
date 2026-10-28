@@ -84,6 +84,12 @@ retriever = Agent(
 )
 
 
+# -----------------------
+# User Question
+# ------------------------
+question = "What are the main contributions of the Transformer described in the supplied paper?"
+
+
 # Tasks
 # ------------------------
 task_route= Task(
@@ -104,3 +110,16 @@ Requirements:
     agent=retriever,
     context=[task_route]
 )
+
+
+# ---- Crew ----
+crew = Crew(
+    agents=[router, retriever],
+    tasks=[task_route, task_retrieve],
+    verbose=True
+)
+
+result = crew.kickoff()
+
+print("\nFinal Output:\n")
+print(result.raw)
