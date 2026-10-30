@@ -44,6 +44,7 @@ class TavilySearchTool(BaseTool):
         }
 
         response = requests.post(url, json=payload)
+        
         data = response.json()
 
         results = []
@@ -85,7 +86,7 @@ retriever = Agent(
 # -----------------------
 # User Question
 # ------------------------
-question = "What are the main contributions of the Transformer described in the supplied paper?"
+question = input("Enter your question: ").strip()
 
 
 # Tasks
